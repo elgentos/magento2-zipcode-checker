@@ -9,19 +9,21 @@ declare(strict_types=1);
 
 namespace Elgentos\ZipcodeChecker\Console\Command;
 
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\Config\Storage\WriterInterface;
-use Magento\Framework\Exception\LocalizedException;
+use Elgentos\ZipcodeChecker\Api\Data\AttributeArrayModifierInterface;
+use Elgentos\ZipcodeChecker\Model\Config\ConfigArrayModifier;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class SetupDutchFields extends Command
 {
-    const COMMAND_NAME = 'elgentos:checkout:setup-dutch-fields';
-    const EAV_ATTRIBUTE_FORM_FIELD_PATH = 'hyva_themes_checkout/component/shipping_address/eav_attribute_form_fields';
+    private const string COMMAND_NAME = 'elgentos:checkout:setup-dutch-fields';
 
-    protected array $settingChanges = [
+    protected array $configChanges = [
+        [
+            'path' => 'hyva_themes_checkout/developer/address_form/use_street_renderer',
+            'value' => '1'
+        ],
         [
             'path' => 'hyva_themes_checkout/address_form/street/field_label_0',
             'value' => 'Street'
@@ -42,21 +44,35 @@ class SetupDutchFields extends Command
         [
             'code' => 'street.0',
             'data' => [
-                'length' => "1" // 1 => 50%
+                'length' => "3" // 1 => 100%
             ]
         ],
         [
             'code' => 'street.1',
             'data' => [
                 'required' => "1",
-                'length' => "1" // 1 => 50%
+                'length' => "3" // 1 => 100%
             ]
+        ],
+        [
+            'code' => 'city',
+            'data' => [
+                'required' => "1"
+            ]
+        ],
+        [
+            'code' => 'region',
+            'after' => 'city'
+        ],
+        [
+            'code' => 'country_id',
+            'after' => 'region'
         ]
     ];
 
     public function __construct(
-        private WriterInterface $configWriter,
-        private ScopeConfigInterface $scopeConfig
+        private readonly AttributeArrayModifierInterface $attributeArrayModifier,
+        private readonly ConfigArrayModifier $configArrayModifier
     ){
         parent::__construct(self::COMMAND_NAME);
     }
@@ -69,73 +85,18 @@ class SetupDutchFields extends Command
         parent::configure();
     }
 
-    /**
-     * Execute the command
-     *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
-     * @return int
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        try {
-            $this->changeStreetLabels();
-            $this->changeFieldLength();
-        }
-        catch (LocalizedException) {
-            return 0;
-        }
-
-        return 1;
-    }
-
-    protected function changeStreetLabels(): void
-    {
-        foreach ($this->settingChanges as $change) {
-            $this->configWriter->save(
-                $change['path'],
-                $change['value']
-            );
-        }
-    }
-
-    protected function changeFieldLength(): void
-    {
-        $value      = $this->scopeConfig->getValue(self::EAV_ATTRIBUTE_FORM_FIELD_PATH);
-        $attributes = json_decode($value, true);
-
-        if (!$attributes){
-            return;
-        }
-
-        foreach ($attributes as $key => $attribute){
-            $change = $this->getAttributeChange($attribute['attribute_code']);
-
-            if (!$change) {
-                continue;
-            }
-
-            $attributes[$key] = [
-                ...$attribute,
-                ...$change['data']
-            ];
-        }
-
-        $this->configWriter->save(
-            self::EAV_ATTRIBUTE_FORM_FIELD_PATH,
-            json_encode($attributes)
+        $this->configArrayModifier->updateConfigValues(
+            $this->configChanges,
+            $output
         );
-    }
 
-    protected function getAttributeChange(string $code): ?array
-    {
-        return array_reduce(
+        $this->attributeArrayModifier->updateAttributeValues(
             $this->attributeChanges,
-            function ($carry, $change) use ($code) {
-                return ($change['code'] === $code) ? $change : $carry;
-            },
-            null,
+            $output
         );
+
+        return 0;
     }
 }

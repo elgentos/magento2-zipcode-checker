@@ -7,7 +7,6 @@ use Elgentos\ZipcodeChecker\Enum\FormModeEnum;
 
 class DefaultCountryModifier implements CountryFormModifierInterface
 {
-
     public function isDefault(): bool
     {
         return true;
