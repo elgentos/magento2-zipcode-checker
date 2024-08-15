@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Copyright Elgentos BV. All rights reserved.
+ * https://www.elgentos.nl/
+ */
+
+declare(strict_types=1);
+
 namespace Elgentos\ZipcodeChecker\Model\HyvaCheckout;
 
 use Elgentos\ZipcodeChecker\Api\Data\CountryFormModifierInterface;
@@ -10,7 +17,9 @@ class FieldListModifier
 {
     /** @var CountryFormModifierInterface[] $countryFormModifiers  */
     protected array $countryFormModifiers = [];
+
     protected EntityFormInterface $form;
+
     protected CountryFormModifierInterface $countryFormModifier;
 
     public function init (
@@ -53,11 +62,17 @@ class FieldListModifier
     public function buildSearchInputForm(): void
     {
         $this->form->getField('street')->hide();
+        $this->form->getField('postcode')->hide();
+        $this->form->getField('city')->hide();
     }
 
     public function buildSearchZipcodeForm(): void
     {
         $this->form->removeField($this->form->getField('search'));
+
+        $this->form->getField('street')->show();
+        $this->form->getField('postcode')->hide();
+        $this->form->getField('city')->hide();
     }
 
     public function getCountryFormModifier(): ?CountryFormModifierInterface
