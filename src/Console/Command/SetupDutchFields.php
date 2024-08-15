@@ -38,20 +38,20 @@ class SetupDutchFields extends Command
         [
             'code' => 'lastname',
             'data' => [
-                'length' => "1" // 1 => 50%
+                'length' => "1" // 50%
             ]
         ],
         [
             'code' => 'street.0',
             'data' => [
-                'length' => "3" // 1 => 100%
+                'length' => "3" // 100%
             ]
         ],
         [
             'code' => 'street.1',
             'data' => [
                 'required' => "1",
-                'length' => "3" // 1 => 100%
+                'length' => "3" // 100%
             ]
         ],
         [
@@ -62,11 +62,16 @@ class SetupDutchFields extends Command
         ],
         [
             'code' => 'region',
-            'after' => 'city'
+            'data' => [
+                'enabled' => 0,
+            ]
         ],
         [
             'code' => 'country_id',
-            'after' => 'region'
+            'after' => 'region',
+            'data' => [
+                'length' => "3" // 100%
+            ]
         ]
     ];
 
