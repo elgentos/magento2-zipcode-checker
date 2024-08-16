@@ -2,8 +2,12 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Elgentos\ZipcodeChecker\Api\Data\AttributeArrayModifierInterface"
                 type="Elgentos\ZipcodeChecker\Model\Attributes\AttributeArrayModifier"/>
+
     <preference for="Elgentos\ZipcodeChecker\Api\Data\ConfigArrayModifierInterface"
                 type="Elgentos\ZipcodeChecker\Model\Config\ConfigArrayModifier"/>
+
+    <preference for="Elgentos\ZipcodeChecker\Api\Data\FieldListModifierInterface"
+                type="Elgentos\ZipcodeChecker\Model\HyvaCheckout\FieldListModifier"/>
 
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>

@@ -1,6 +1,17 @@
 <?php
 
+/**
+ * Copyright Elgentos BV. All rights reserved.
+ * https://www.elgentos.nl/
+ */
+
 declare(strict_types=1);
+
+use Hyva\Checkout\Model\Form\EntityFieldInterface;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Magewirephp\Magewire\Component\Form as MagewireFormComponent;
 
 /** @var Template $block */
 /** @var EntityFieldInterface $element */
@@ -10,21 +21,42 @@ declare(strict_types=1);
 
 /** @Tailwind md:w-1/4 md:w-2/4 md:w-3/4 md:w-4/4 mb-2 */
 
-use Hyva\Checkout\Model\Form\EntityFieldInterface;
-use Hyva\Theme\Model\ViewModelRegistry;
-use Magento\Framework\Escaper;
-use Magento\Framework\View\Element\Template;
-use Magewirephp\Magewire\Component\Form as MagewireFormComponent;
-
 $element = $block->getData('element');
 $attributes = $element->getAttributes();
+$renderer = $element->getRenderer();
 ?>
-<?php if ($element->hasRelatives()): ?>
-    <div class="grid grid-cols-2 gap-y-2 gap-x-4 place-items-end">
+<div class="w-full font-medium text-gray-700 relative <?= /* @noEscape */ $element->isRequired() ? 'required' : 'not-required' ?>">
+    <?= /* @noEscape */ $renderer->renderLabel($element) ?>
+    <?= /* @noEscape */ $renderer->renderBefore($element) ?>
+
+    <?php if ($element->hasRelatives()): ?>
+    <div class="space-y-2">
+        <?php endif ?>
+
+        <div class="flex items-center gap-4">
+            <input class="<?= $escaper->escapeHtmlAttr($element->renderClass(['block w-full form-input grow renderer-text'])) ?>"
+                <?php if ($element->hasAttributes()): ?>
+                    <?= /* @noEscape */ $element->renderAttributes($escaper) ?>
+                <?php endif ?>
+            />
+
+            <?= /* @noEscape */ $element->getRenderer()->renderTooltip($element) ?>
+        </div>
+
+        <?= /* @noEscape */ $element->getRenderer()->renderComment($element) ?>
+
+        <?php if ($element->hasRelatives()): ?>
+            <?php foreach ($element->getRelatives() as $relative): ?>
+                <?php if ($relative->isVisible()): ?>
+                    <?= /* @noEscape */ $relative->render() ?>
+                <?php endif ?>
+            <?php endforeach ?>
+        <?php endif ?>
+
+        <?php if ($element->hasRelatives()): ?>
+    </div>
 <?php endif ?>
 
-<div class="w-full font-medium text-gray-700 <?= /* @noEscape */ $element->isRequired() ? 'required' : 'not-required' ?>">
-    <h1>SEARCH</h1>
-    <?= /* @noEscape */ $element->getRenderer()->renderAfter($element) ?>
+    <?= /* @noEscape */ $renderer->renderAfter($element) ?>
 </div>
 

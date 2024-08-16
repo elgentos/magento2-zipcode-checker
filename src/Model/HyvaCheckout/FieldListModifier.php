@@ -10,10 +10,13 @@ declare(strict_types=1);
 namespace Elgentos\ZipcodeChecker\Model\HyvaCheckout;
 
 use Elgentos\ZipcodeChecker\Api\Data\CountryFormModifierInterface;
-use Elgentos\ZipcodeChecker\Enum\FormModeEnum;
+use Elgentos\ZipcodeChecker\Api\Data\FieldListModifierInterface;
 use Hyva\Checkout\Model\Form\EntityFormInterface;
+use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 
-class FieldListModifier
+class FieldListModifier implements FieldListModifierInterface
 {
     /** @var CountryFormModifierInterface[] $countryFormModifiers  */
     protected array $countryFormModifiers = [];
@@ -22,12 +25,17 @@ class FieldListModifier
 
     protected CountryFormModifierInterface $countryFormModifier;
 
+    public function __construct(
+        private readonly Session $session,
+    ) {
+    }
+
     public function init (
         EntityFormInterface $form,
         array $countryFormModifiers = []
     ): void {
-        $this->form = $form;
         $this->countryFormModifiers = $countryFormModifiers;
+        $this->form                 = $form;
 
         $this->form->addField(
             $this->form->createField(
@@ -49,30 +57,12 @@ class FieldListModifier
 
     public function build(): void
     {
-        $this->countryFormModifier = $this->getCountryFormModifier();
-
-        if ($this->countryFormModifier->getMode() === FormModeEnum::SearchBasedOnInput) {
-            $this->buildSearchInputForm();
-            return;
-        }
-
-        $this->buildSearchZipcodeForm();
+        $this->dispatchCountryModifier('build');
     }
 
-    public function buildSearchInputForm(): void
+    public function getForm(): EntityFormInterface
     {
-        $this->form->getField('street')->hide();
-        $this->form->getField('postcode')->hide();
-        $this->form->getField('city')->hide();
-    }
-
-    public function buildSearchZipcodeForm(): void
-    {
-        $this->form->removeField($this->form->getField('search'));
-
-        $this->form->getField('street')->show();
-        $this->form->getField('postcode')->hide();
-        $this->form->getField('city')->hide();
+        return $this->form;
     }
 
     public function getCountryFormModifier(): ?CountryFormModifierInterface
@@ -101,10 +91,33 @@ class FieldListModifier
         return $result['specific'] ?? $result['default'];
     }
 
+    /**
+     * @throws NoSuchEntityException
+     * @throws LocalizedException
+     */
     public function getCountryCode(): string
     {
-        return strtolower(
-            $this->form->getField('country_id')->getValue()
-        );
+        $countryCode = $this->form->getField('country_id')->getValue();
+
+        if (! $countryCode) {
+            $countryCode = $this->session->getQuote()->getShippingAddress()->getCountryId();
+        }
+
+        return strtolower($countryCode);
+    }
+
+    protected function dispatchCountryModifier(string $method): void
+    {
+        $countryModifier = $this->getCountryFormModifier();
+
+        if (! $countryModifier) {
+            return;
+        }
+
+        if (! method_exists($countryModifier, $method)) {
+            return;
+        }
+
+        $countryModifier->{$method}($this);
     }
 }

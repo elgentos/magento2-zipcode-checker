@@ -9,17 +9,14 @@ declare(strict_types=1);
 
 namespace Elgentos\ZipcodeChecker\Model\HyvaCheckout;
 
-use Elgentos\ZipcodeChecker\Api\Data\CountryFormModifierInterface;
+use Elgentos\ZipcodeChecker\Api\Data\FieldListModifierInterface;
 use Hyva\Checkout\Model\Form\EntityFormInterface;
 use Hyva\Checkout\Model\Form\EntityFormModifierInterface;
 
 class FormModifier implements EntityFormModifierInterface
 {
-    /**
-     * @param CountryFormModifierInterface[] $countryFormModifiers
-     */
     public function __construct(
-        public FieldListModifier $fieldListModifier,
+        public FieldListModifierInterface $fieldListModifier,
         public array $countryFormModifiers = []
     ){
     }
