@@ -1,5 +1,4 @@
 # zipcode-checker
-WIP
 
 ## Prepare the project for the Dutch market.
 
