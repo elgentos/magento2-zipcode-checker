@@ -3,7 +3,7 @@
 namespace Elgentos\ZipcodeChecker\Model\CountryFormModifier;
 
 use Elgentos\ZipcodeChecker\Api\Data\CountryFormModifierInterface;
-use Elgentos\ZipcodeChecker\Enum\FormModeEnum;
+use Elgentos\ZipcodeChecker\Api\Data\FieldListModifierInterface;
 
 class NLCountryModifier implements CountryFormModifierInterface
 {
@@ -17,8 +17,20 @@ class NLCountryModifier implements CountryFormModifierInterface
         return ['nl'];
     }
 
-    public function getMode(): FormModeEnum
+    public function build(FieldListModifierInterface $fieldListModifier): void
     {
-        return FormModeEnum::SearchBasedOnZipcodeHouseNumber;
+        $form = $fieldListModifier->getForm();
+
+        $form->removeField($form->getField('search'));
+
+        //$streetRelatives = $form->getField('street')->getRelatives();
+        //$form->getField('street')->hide();
+        //foreach ($streetRelatives as $relative) {
+        //    $relative->show();
+        //}
+
+        //$form->getField('street')->show();
+        $form->getField('postcode')->show();
+        $form->getField('city')->hide();
     }
 }
